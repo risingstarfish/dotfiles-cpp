@@ -102,7 +102,7 @@ cpmaddpackage(
     GIT_REPOSITORY
     https://github.com/risingstarfish/reflex.git
     GIT_TAG
-    27f3cb22c596e5a35e1803d78e5f5c28dc9aac7a
+    0be3c7ea2da23c55afee55e2e86b7d315615acab
     OPTIONS
     "REFLEX_CLI_ENABLED ON"
     "REFLEX_POLY_ENABLED OFF"
@@ -111,7 +111,7 @@ cpmaddpackage(
     "REFLEX_PY_ENABLED OFF"
 )
 
-target_link_libraries(internal-flags INTERFACE reflex::cli )
+target_link_libraries(internal-flags INTERFACE reflex::cli)
 
 if(DOTFILES_ENABLE_CONTRACTS)
     include(CheckCXXSourceCompiles)
@@ -134,10 +134,8 @@ if(DOTFILES_ENABLE_CONTRACTS)
     endif()
 endif()
 
-set(DOTFILES_PRECOMPILE_HEADERS
-    # NOTE: keep alphabetical
-    <array>
-    <print>
+set(DOTFILES_PRECOMPILE_HEADERS # NOTE: keep alphabetical
+    <array> <print>
 )
 target_precompile_headers(internal-flags INTERFACE ${DOTFILES_PRECOMPILE_HEADERS})
 
