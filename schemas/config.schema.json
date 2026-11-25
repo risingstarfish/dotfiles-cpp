@@ -1,0 +1,161 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/risingstarfish/dotfiles/schemas/config.schema.json",
+    "title": "Dotfiles Config",
+    "description": "Schema for the dotfiles configuration file. Module names are open-ended; the installer cross-checks them against the modules file at runtime.",
+    "type": "object",
+    "$defs": {
+        "log_level": {
+            "type": "string",
+            "enum": ["trace", "debug", "info", "warn", "error"]
+        },
+        "logging_config": {
+            "type": "object",
+            "properties": {
+                "enabled": { "type": "boolean", "default": true },
+                "quiet": { "type": "boolean" },
+                "path": { "type": "string" },
+                "log_level": { "$ref": "#/$defs/log_level" },
+                "log_size_mb": { "type": "number", "minimum": 0 },
+                "time": { "type": "boolean" }
+            },
+            "additionalProperties": false
+        },
+        "env_value": {
+            "description": "A DOTFILES_* environment variable default value",
+            "anyOf": [{ "type": "string" }, { "type": "boolean" }]
+        },
+        "module_name": {
+            "description": "A module name, matching a directory in modules/ and a key in the modules file.",
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "file_type": {
+            "type": "string",
+            "enum": ["symlink", "copy", "generate"]
+        },
+        "canonical_path": {
+            "description": "A module-relative file path, e.g. 'topgrade/topgrade.toml' or 'zsh/zshrc.toggles'",
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*/[A-Za-z0-9._/-]+$"
+        },
+        "file_override": {
+            "description": "Per-device overrides for a single file entry from the modules file. A plain boolean force-enables (true) or force-disables (false) the file.",
+            "anyOf": [
+                { "type": "boolean" },
+                {
+                    "type": "object",
+                    "minProperties": 1,
+                    "properties": {
+                        "enabled": { "type": "boolean" },
+                        "destination": {
+                            "anyOf": [
+                                { "type": "string", "minLength": 1 },
+                                {
+                                    "type": "object",
+                                    "minProperties": 1,
+                                    "additionalProperties": {
+                                        "type": "string",
+                                        "minLength": 1
+                                    }
+                                }
+                            ]
+                        },
+                        "type": { "$ref": "#/$defs/file_type" },
+                        "post_install": {
+                            "description": "Overrides the post-install command; empty string clears it",
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            ]
+        }
+    },
+    "properties": {
+        "$schema": {
+            "description": "Editor hint pointing at this schema; ignored at install time",
+            "type": "string"
+        },
+        "version": {
+            "description": "Dotfiles config schema version",
+            "type": "string",
+            "enum": ["1.0"]
+        },
+        "env": {
+            "description": "Users target environment. Must be a valid option from the modules file os_list, or 'auto' to auto-detect.",
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$",
+            "examples": [
+                "cachyos",
+                "macos",
+                "debian",
+                "windows",
+                "windows-wsl",
+                "windows-bash",
+                "auto"
+            ]
+        },
+        "language": {
+            "description": "Language during installation",
+            "type": "string",
+            "enum": ["english-uk", "english-us"]
+        },
+        "environment": {
+            "description": "Default values for DOTFILES_* environment variables",
+            "type": "object",
+            "properties": {
+                "DOTFILES_LOG": { "type": "boolean", "default": true },
+                "DOTFILES_LOG_DIR": {
+                    "type": "string",
+                    "default": "${HOME}/.config/dotfiles/logs"
+                },
+                "DOTFILES_CACHE_DIR": {
+                    "type": "string",
+                    "default": "${HOME}/.cache/dotfiles"
+                },
+                "DOTFILES_LOCAL_MODS": { "type": "boolean", "default": false },
+                "DOTFILES_AUTORESTART": { "type": "boolean", "default": false },
+                "DOTFILES_IGNORE_HANDOFF": {
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "additionalProperties": { "$ref": "#/$defs/env_value" }
+        },
+        "colour": {
+            "description": "Colour output mode",
+            "type": "string",
+            "enum": ["auto", "always", "never", "ansi", "truecolor"],
+            "default": "auto"
+        },
+        "max_backups": {
+            "description": "Maximum amount of backups to store",
+            "type": "integer",
+            "minimum": 0,
+            "default": 10
+        },
+        "logging": {
+            "type": "object",
+            "properties": {
+                "initialise": { "$ref": "#/$defs/logging_config" },
+                "main": { "$ref": "#/$defs/logging_config" }
+            },
+            "additionalProperties": false
+        },
+        "modules": {
+            "description": "Per-device module toggles. DEFAULT-OPEN: every module in the registry installs unless listed here as false. Omit modules that should simply install (the common case); list only exceptions, e.g. { \"ssh\": false }. Unknown module names are a validate error, catching typos and removed modules.",
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/module_name" },
+            "additionalProperties": { "type": "boolean" }
+        },
+        "files": {
+            "description": "Per-device file toggles/overrides keyed by 'module/name'. Default-open: registry files install unless disabled here. A boolean toggles; an object overrides specific fields. The key addresses the whole per-OS source group, so \"topgrade/topgrade.toml\": false disables every per-OS entry for that source. e.g. { \"zsh/p10k.zsh\": false, \"topgrade/topgrade.toml\": { \"mode\": \"0600\" } }",
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/canonical_path" },
+            "additionalProperties": { "$ref": "#/$defs/file_override" }
+        }
+    },
+    "required": ["version", "env", "language"],
+    "additionalProperties": false
+}

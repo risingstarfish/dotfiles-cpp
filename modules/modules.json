@@ -1,0 +1,340 @@
+{
+    "platforms": [
+        { "name": "cachyos", "families": "linux,unix" },
+        { "name": "debian", "families": "linux,unix" },
+        { "name": "macos", "families": "unix" },
+        { "name": "windows-wsl", "families": "linux,unix" },
+        { "name": "windows-bash", "families": "win,unix" },
+        { "name": "windows", "families": "win" }
+    ],
+    "files": [
+        {
+            "module": "curl",
+            "source": "curlrc",
+            "name": "curlrc",
+            "description": "Global curlrc file.",
+            "available": "*",
+            "destination": "${HOME}/.curlrc",
+            "type": "symlink",
+            "mode": "0644"
+        },
+
+        {
+            "module": "dev",
+            "source": "clang-format",
+            "name": "clang-format",
+            "description": "Default C++ clang-format.",
+            "available": "*",
+            "destination": "${HOME}/.clang-format",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "dev",
+            "source": "clang-tidy",
+            "name": "clang-tidy",
+            "description": "Default C++ clang-tidy.",
+            "available": "*",
+            "destination": "${HOME}/.clang-tidy",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "dev",
+            "source": "cmake-format.py",
+            "name": "cmake-format.py",
+            "description": "Default C++ cmake-format.py.",
+            "available": "*",
+            "destination": "${HOME}/.cmake-format.py",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "dev",
+            "source": "editorconfig",
+            "name": "editorconfig",
+            "description": "Default project editorconfig.",
+            "available": "*",
+            "destination": "${HOME}/.editorconfig",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "dev",
+            "source": "gen-cmakepreset.py",
+            "name": "gen-cmakepreset.py",
+            "description": "Script to generate cross-platform CMakeUserPresets.json.",
+            "available": "*",
+            "destination": "${HOME}/.local/bin/gen-cmakepreset.py",
+            "type": "copy",
+            "mode": "0755"
+        },
+        {
+            "module": "dev",
+            "source": "internal-flags.cmake",
+            "name": "internal-flags.cmake",
+            "description": "Some default C++ flags for most projects.",
+            "available": "*",
+            "destination": "${HOME}/.internal-flags.cmake",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "dev",
+            "source": "just_ascii_test.cmake",
+            "name": "just_ascii_test.cmake",
+            "description": "CMake test to ensure all C++ files contain just ascii.",
+            "available": "*",
+            "destination": "${HOME}/.just_ascii_test.cmake",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "dev",
+            "source": "just_ascii.ps1",
+            "name": "just_ascii.ps1",
+            "description": "Powershell script to ensure all source files are ascii. Pairs with just_ascii_test.cmake.",
+            "available": "*",
+            "destination": "${HOME}/.just_ascii.ps1",
+            "type": "copy",
+            "mode": "0755"
+        },
+        {
+            "module": "dev",
+            "source": "just_ascii.sh",
+            "name": "just_ascii.sh",
+            "description": "Bash script to ensure all source files are ascii. Pairs with just_ascii_test.cmake.",
+            "available": "*",
+            "destination": "${HOME}/.just_ascii.sh",
+            "type": "copy",
+            "mode": "0755"
+        },
+
+        {
+            "module": "git",
+            "source": "gitconfig",
+            "name": "gitconfig",
+            "description": "Global git config",
+            "available": "*",
+            "destination": "${HOME}/.gitconfig",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "git",
+            "source": "gitconfig.local",
+            "name": "gitconfig.local",
+            "description": "Per-OS git include, chosen by platform overlay.",
+            "available": "*",
+            "destination": "${HOME}/.gitconfig.local",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "git",
+            "source": "diff-so-fancy",
+            "name": "diff-so-fancy",
+            "description": "Colours git diffs.",
+            "available": "*",
+            "destination": "${HOME}/.local/bin/diff-so-fancy",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "git",
+            "source": "gitattributes",
+            "name": "gitattributes",
+            "description": "Global git attributes.",
+            "available": "*",
+            "destination": "${HOME}/.gitattributes",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "git",
+            "source": "gitignore",
+            "name": "gitignore",
+            "description": "Global git ignore.",
+            "available": "*",
+            "destination": "${HOME}/.gitignore",
+            "type": "symlink",
+            "mode": "0644"
+        },
+
+        {
+            "module": "shellcheck",
+            "source": "shellcheckrc",
+            "name": "shellcheckrc",
+            "description": "Default shellcheckrc file.",
+            "available": "*",
+            "destination": "${HOME}/.shellcheckrc",
+            "type": "symlink",
+            "mode": "0644"
+        },
+
+        {
+            "module": "ssh",
+            "source": "allowed_signers.gen",
+            "name": "allowed_signers.gen",
+            "description": "Generated global ssh allowed signers.",
+            "available": "*",
+            "destination": "${HOME}/.ssh/allowed_signers",
+            "type": "script",
+            "mode": "0600"
+        },
+        {
+            "module": "ssh",
+            "source": "config",
+            "name": "config",
+            "description": "Global ssh config.",
+            "available": "*",
+            "destination": "${HOME}/.ssh/config",
+            "type": "copy",
+            "mode": "0600"
+        },
+
+        {
+            "module": "tmux",
+            "source": "tmux.conf",
+            "name": "tmux.conf",
+            "description": "tmux.conf for macOS (available restricted to macos).",
+            "available": "macos",
+            "destination": "${HOME}/.tmux.conf",
+            "type": "symlink",
+            "mode": "0644"
+        },
+
+        {
+            "module": "topgrade",
+            "source": "topgrade.toml",
+            "name": "topgrade.toml",
+            "description": "topgrade config for Unix-like systems (XDG path).",
+            "available": "unix",
+            "destination": "${XDG_CONFIG_HOME:-${HOME}/.config}/topgrade.toml",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "topgrade",
+            "source": "topgrade.toml",
+            "name": "topgrade.toml.win",
+            "description": "topgrade config for native Windows (topgrade's own config dir).",
+            "available": "win",
+            "destination": "${HOME}/topgrade/topgrade.toml",
+            "type": "symlink",
+            "mode": "0644"
+        },
+
+        {
+            "module": "wget",
+            "source": "wgetrc",
+            "name": "wgetrc",
+            "description": "Default wgetrc file.",
+            "available": "*",
+            "destination": "${HOME}/.wgetrc",
+            "type": "symlink",
+            "mode": "0644"
+        },
+
+        {
+            "module": "zsh",
+            "source": "zshrc",
+            "name": "zshrc",
+            "description": "Zsh startup file: entry point that sources exports, paths, aliases, functions, options, and toggles.",
+            "available": "unix",
+            "destination": "${HOME}/.zshrc",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "zsh",
+            "source": "zsh_options",
+            "name": "zsh_options",
+            "description": "Zsh setopt settings: completion, history, navigation, and globbing behaviour.",
+            "available": "unix",
+            "destination": "${HOME}/.zsh_options",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "zsh",
+            "source": "zstyles",
+            "name": "zstyles",
+            "description": "Zstyle completion menu appearance and per-command styling.",
+            "available": "unix",
+            "destination": "${HOME}/.zstyles",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "zsh",
+            "source": "zimrc",
+            "name": "zimrc",
+            "description": "Zim framework config: enabled modules and autoloads.",
+            "available": "unix",
+            "destination": "${HOME}/.zimrc",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "zsh",
+            "source": "p10k.zsh",
+            "name": "p10k.zsh",
+            "description": "Powerlevel10k prompt theme, segments, and icons.",
+            "available": "unix",
+            "destination": "${HOME}/.p10k.zsh",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "zsh",
+            "source": "zshrc.toggles",
+            "name": "zshrc.toggles",
+            "description": "Optional feature toggles sourced by zshrc.",
+            "available": "unix",
+            "destination": "${HOME}/.zshrc.toggles",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "zsh",
+            "source": "exports",
+            "name": "exports",
+            "description": "Environment variable exports sourced at startup.",
+            "available": "unix",
+            "destination": "${HOME}/.exports",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "zsh",
+            "source": "paths",
+            "name": "paths",
+            "description": "PATH additions sourced at startup.",
+            "available": "unix",
+            "destination": "${HOME}/.paths",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "zsh",
+            "source": "aliases",
+            "name": "aliases",
+            "description": "Zsh aliases for common commands.",
+            "available": "unix",
+            "destination": "${HOME}/.aliases",
+            "type": "symlink",
+            "mode": "0644"
+        },
+        {
+            "module": "zsh",
+            "source": "functions",
+            "name": "functions",
+            "description": "Zsh function definitions sourced at startup.",
+            "available": "unix",
+            "destination": "${HOME}/.functions",
+            "type": "symlink",
+            "mode": "0644"
+        }
+    ]
+}

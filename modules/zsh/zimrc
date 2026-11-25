@@ -1,0 +1,39 @@
+#!/usr/bin/env zsh
+
+zmodule romkatv/powerlevel10k
+
+zmodule jeffreytse/zsh-vi-mode
+zmodule Aloxaf/fzf-tab
+zmodule shanwker1223/zim-alias-finder
+zmodule hlissner/zsh-autopair
+zmodule kiesman99/zim-zoxide
+
+zmodule fzf
+zmodule ssh
+zmodule git-info
+zmodule duration-info
+zmodule prompt-pwd
+zmodule magic-enter
+
+# --- Platform Specific Modules ---
+if [[ $OSTYPE == "darwin"*   ]]; then
+    zmodule homebrew
+fi
+
+if command -v pacman > /dev/null 2>&1; then
+    zmodule pacman
+fi
+
+zmodule environment
+zmodule git
+zmodule input
+zmodule termtitle
+zmodule utility
+zmodule run-help
+zmodule archive
+
+zmodule zsh-users/zsh-completions --fpath src
+zmodule completion
+
+zmodule zsh-users/zsh-autosuggestions
+zmodule zsh-users/zsh-syntax-highlighting

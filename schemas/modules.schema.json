@@ -1,0 +1,205 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/risingstarfish/dotfiles/schemas/modules.schema.json",
+    "title": "Dotfiles Module Registry",
+    "description": "Schema for the single module registry at modules/modules.json. This file is #embed'ed into the installer and parsed at compile time with simdjson, which synthesizes one C++ aggregate per JSON object and one std::array (size part of the type) per JSON array. Compile-time rules: strict JSON only (comments are compile errors); every key must be a valid C++ identifier because compile-time parsing turns keys into struct members (hence NO '$schema' key — map this schema in your editor settings instead); and every array must be HOMOGENEOUS — all elements of one array must have the identical key set in the identical order with identical value types, or the generated types differ and the build fails. To make that achievable the format is FLAT: exactly two top-level arrays ('platforms' and 'files'), NO nested arrays anywhere (family chains and platform selectors are strings), 'destination' is always a plain string (never a per-platform map), and every file_entry key is required and explicit — omitting a key on even one entry (even one with a convention default) changes the member set and breaks uniformity. Modules are not nested objects: each entry names its 'module'; module order is first appearance in 'files'.",
+    "$defs": {
+        "platform_name": {
+            "description": "A platform or family name.",
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "family_chain": {
+            "description": "Comma-separated family names (no spaces). A string rather than an array so every 'platforms' element generates the same struct: nested array lengths differ per platform and array length is part of the compile-time type.",
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*(,[a-z0-9][a-z0-9-]*)*$"
+        },
+        "platform": {
+            "type": "object",
+            "description": "One installable platform with its family chain. One rule covers everything platform-dependent: walk chain = [name] + families, first match wins — used for 'available' entry selection and for overlay file lookup (source/<chain element>). Entry selection groups entries by 'source': several entries sharing one source are one logical file installed at per-OS destinations (e.g. topgrade.toml), and on a given platform only the entry matching at the EARLIEST chain position installs — a platform with chain [windows-bash, win, unix] resolves its 'win' entry and skips the group's 'unix' entry. The 'name' field does NOT group; it is the per-entry device-override key. Validator enforces: platform names unique, no cycles, entries of one source group tied at the same chain position on any platform are an error, and no two installing entries ever share one destination on one platform.",
+            "properties": {
+                "name": { "$ref": "#/$defs/platform_name" },
+                "families": { "$ref": "#/$defs/family_chain" }
+            },
+            "required": ["name", "families"],
+            "additionalProperties": false
+        },
+        "platform_selector": {
+            "description": "A platform or family name, or '*' for all platforms.",
+            "anyOf": [
+                { "const": "*" },
+                { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" }
+            ]
+        },
+        "available": {
+            "description": "The single platform or family name this entry applies to ('*' for all). A platform matches when the name appears in its chain [platform, ...families]. Entries sharing one 'source' form a per-OS group: on each platform, only the entry matching at the EARLIEST chain position installs — a platform with chain [windows-bash, win, unix] resolves its 'win' entry and skips the group's 'unix' entry. Two entries of one source group matching at the SAME chain position on any platform is an ambiguity error at validate. A platform with no matching entry (and no matching overlay) for a source is unsupported for that file: hard error at validate if the name is listed explicitly, silent skip for '*' when an overlay supplies the variant. A list is not allowed here: per-entry selector arrays of different lengths would make the 'files' elements heterogeneous.",
+            "type": "string",
+            "$comment": "Constrained via anyOf below, kept as one string for compile-time uniformity.",
+            "anyOf": [
+                { "const": "*" },
+                { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" }
+            ]
+        },
+        "path_template": {
+            "description": "Destination path template. Supports ${VAR} expansion (environment, then device-config vars) and ${VAR:-fallback} syntax, e.g. '${XDG_CONFIG_HOME:-${HOME}/.config}/topgrade.toml'.",
+            "type": "string",
+            "minLength": 1
+        },
+        "destination": {
+            "description": "Destination path template. Always a plain string: per-platform destination maps would give sibling 'files' entries different generated types (and need runtime resolution); split per-OS destinations into separate entries with disjoint 'available' instead (see the chain rule).",
+            "$ref": "#/$defs/path_template"
+        },
+        "file_type": {
+            "description": "Install strategy. 'symlink': link destination to source (falling back to copy on platforms without symlink privileges). 'copy': copy source bytes. 'generate': expand ${...} in a '.in' template and write the result. 'script': run the '.gen' script with bash at install time; the script must be idempotent, honour $DOTFILES_SCRIPT_DEST (the resolved destination), exit non-zero on failure, and is skipped with a warning on platforms without bash.",
+            "type": "string",
+            "enum": ["symlink", "copy", "generate", "script"]
+        },
+        "file_mode": {
+            "description": "Octal permission bits applied to the installed file after install (chmod on Unix; best-effort no-op on Windows). Only meaningful for 'copy', 'generate', and 'script' (where it applies to the produced file): on a 'symlink' there is nothing to chmod at the destination, so the installer ignores 'mode' — write '0644' on symlinks (it cannot be omitted: every 'files' entry must carry the identical key set).",
+            "type": "string",
+            "pattern": "^0?[0-7]{3}$"
+        },
+        "overlay": {
+            "description": "OVERLAY SOURCES (disk layout, not manifest fields): if a file's 'source' names a directory, its entries are per-platform variants named '<platform>' or '<family>'. Resolution walks the platform's chain [platform, ...families]: source/<platform> first, then source/<family>, then a bare file named exactly 'source'; first match wins, nothing is merged. The installed destination always derives from the logical source name, never the variant. Validator errors on: variant names that are not platform/family names, non-regular files in an overlay directory, and an overlay on a '.in'/'.gen' source. (Documentation only; not referenced by instance data.)"
+        },
+        "var_name": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "vars": {
+            "description": "Substitution values for 'generate' templates and destination templates: ${VAR} is expanded from environment first, then from device-config module vars. The flat compile-time registry has no place for module-level 'vars' (a key present on some module elements only would be heterogeneous); values live in the device configs. (Documentation only; not referenced by instance data.)",
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/var_name" },
+            "additionalProperties": {
+                "anyOf": [
+                    { "type": "string" },
+                    { "type": "boolean" },
+                    { "type": "number" }
+                ]
+            }
+        },
+        "module_name": {
+            "description": "A module name; must match a directory under modules/ containing the source files.",
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "file_entry": {
+            "type": "object",
+            "description": "A single file (or overlay) to install. ALL keys are required and every entry in 'files' must list them in the same order: 'description' may be the empty string, 'mode' on a symlink is '0644' — a key omitted on even one entry generates a different member set and fails the compile-time parse. 'enabled' or 'post_install' may be added later only by adding the key to EVERY entry in the same position.",
+            "properties": {
+                "module": { "$ref": "#/$defs/module_name" },
+                "name": {
+                    "description": "Logical file name (the device-config override key, 'module/name'). Must be non-empty; the '.in'/'.gen' suffix of the source is NOT stripped at compile time, so write the name you want here.",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "source": {
+                    "description": "Path relative to the module directory; '/'-separated, must stay inside the module (no '..', no absolute paths). May name a plain file or an overlay directory.",
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+                },
+                "description": { "type": "string" },
+                "available": { "$ref": "#/$defs/available" },
+                "destination": { "$ref": "#/$defs/destination" },
+                "type": { "$ref": "#/$defs/file_type" },
+                "mode": { "$ref": "#/$defs/file_mode" }
+            },
+            "required": [
+                "module",
+                "name",
+                "source",
+                "description",
+                "available",
+                "destination",
+                "type",
+                "mode"
+            ],
+            "additionalProperties": false,
+            "allOf": [
+                {
+                    "$comment": "'.in' means generate: the suffix and the type must agree.",
+                    "if": {
+                        "properties": {
+                            "source": { "pattern": "\\.in$" }
+                        }
+                    },
+                    "then": {
+                        "properties": { "type": { "const": "generate" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": { "const": "generate" }
+                        },
+                        "required": ["type"]
+                    },
+                    "then": {
+                        "properties": {
+                            "source": { "pattern": "\\.in$" }
+                        }
+                    }
+                },
+                {
+                    "$comment": "'.gen' means script: it runs and is never installed.",
+                    "if": {
+                        "properties": {
+                            "source": { "pattern": "\\.gen$" }
+                        }
+                    },
+                    "then": {
+                        "properties": { "type": { "const": "script" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": { "const": "script" }
+                        },
+                        "required": ["type"]
+                    },
+                    "then": {
+                        "properties": {
+                            "source": { "pattern": "\\.gen$" }
+                        }
+                    }
+                },
+                {
+                    "$comment": "Symlinks have nothing to chmod at the destination: 'mode' must be the default '0644' (keys can no longer be omitted).",
+                    "if": {
+                        "properties": {
+                            "type": { "const": "symlink" }
+                        },
+                        "required": ["type"]
+                    },
+                    "then": {
+                        "properties": {
+                            "mode": { "const": "0644" }
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "properties": {
+        "platforms": {
+            "description": "The universe of installable platforms and their family chains. 'available: \"*\"' expands to exactly these platform names. Every platform or family referenced anywhere else in the file must appear here.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/platform" },
+            "minItems": 1
+        },
+        "modules": {
+            "description": "REMOVED: modules are no longer nested objects (variable-length 'files' arrays make them heterogeneous at compile time). Each element of 'files' names its 'module'; module installation order is first appearance in 'files'.",
+            "type": "array",
+            "maxItems": 0
+        },
+        "files": {
+            "description": "All files across all modules, in installation order. One homogeneous array: every entry has the identical key set in the identical order.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/file_entry" },
+            "minItems": 1
+        }
+    },
+    "required": ["platforms", "files"],
+    "additionalProperties": false
+}
