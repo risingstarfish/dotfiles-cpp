@@ -3,19 +3,6 @@ cmake_minimum_required(VERSION 3.28)
 #
 # flags
 #
-# Disable IPO for GCC on macOS because gcc generates DWARF info
-# that causes Apple Clang's dsymutil to crash with "invalid abbreviation" errors.
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    message(STATUS "Disabling IPO for GCC on macOS due to dsymutil compatibility issues.")
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
-else()
-    include(CheckIPOSupported)
-    check_ipo_supported(RESULT ltoresult)
-    if(ltoresult)
-        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-    endif()
-endif()
-
 if(DOTFILES_USE_LIBCPP)
     target_link_libraries(internal-flags INTERFACE -stdlib=libc++ -lc++abi)
     # instead of the above line, we could have used
