@@ -102,7 +102,7 @@ cpmaddpackage(
     GIT_REPOSITORY
     https://github.com/risingstarfish/reflex.git
     GIT_TAG
-    0be3c7ea2da23c55afee55e2e86b7d315615acab
+    78d265535e08b098babdee954580167963d80bc1
     OPTIONS
     "REFLEX_CLI_ENABLED ON"
     "REFLEX_POLY_ENABLED OFF"

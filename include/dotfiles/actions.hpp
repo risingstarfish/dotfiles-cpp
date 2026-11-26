@@ -1,0 +1,91 @@
+//       _       _    __ _ _
+//      | |     | |  / _(_) |
+//    __| | ___ | |_| |_ _| | ___  ___
+//   / _` |/ _ \| __|  _| | |/ _ \/ __|
+//  | (_| | (_) | |_| | | | |  __/\__ \
+//   \__,_|\___/ \__|_| |_|_|\___||___/
+//  https://github.com/risingstarfish/dotfiles-cpp
+//  version 0.1.0
+//
+// Licensed under the MIT License <http://opensource.org/licenses/MIT>.
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Pierce Katai <169690632+risingstarfish@users.noreply.github.com>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+#pragma once
+
+
+#include "dotfiles/common.hpp"
+#include "dotfiles/config.hpp"
+
+#include <expected>
+#include <iostream>
+#include <print>
+#include <string>
+#include <string_view>
+
+
+namespace rs_dotfiles {
+
+namespace detail {
+[[noreturn]] inline void kill_program(int code) noexcept {
+    std::exit(code);
+}
+}  // namespace detail
+
+[[nodiscard]] inline auto do_install() -> int {
+    return 0;
+}
+[[nodiscard]] inline auto do_update() -> bool {
+    return false;
+}
+
+inline void prompt_continue(std::string_view msg = {}) {
+    std::println();
+    if (!msg.empty()) {
+        std::println(stderr, "{}", msg);
+    }
+
+    for (;;) {
+        std::println();
+        std::print(stderr, "Do you want to continue anyway? [y/N]: ");
+
+        if (std::string choice; not std::getline(std::cin, choice)) {
+            std::println(stderr, "Error: No input available for prompt.");
+            detail::kill_program(1);
+        } else if (choice == "y" || choice == "Y") {
+            return;
+        } else if (choice == "n" || choice == "N") {
+            std::println(stderr, "Aborting installation!");
+            detail::kill_program(130);
+        } else {
+            std::println(stderr, "Error: Invalid input. Please enter y or n.");
+        }
+    }
+}
+
+template<typename... Args>
+    requires(sizeof...(Args) > 0)
+inline void prompt_continue(std::format_string<Args...> fmt, Args &&...args) {
+    prompt_continue(std::format(fmt, std::forward<Args>(args)...));
+}
+
+
+//
+}  // namespace rs_dotfiles

@@ -1,12 +1,8 @@
-//
-// dotfiles.cpp — installer entry point
-//
-// The module registry is parsed at COMPILE time: modules/module.json is
-// embedded into the binary with #embed, so a contributor only ever edits
-// JSON (add a module dir + an entry) and rebuilds — never C++ code.
-// Device configs (configs/*.json) stay runtime-parsed; they differ per
-// machine and cannot be baked in.
-//
+// Licensed under the MIT License <http://opensource.org/licenses/MIT>.
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Pierce Katai <169690632+risingstarfish@users.noreply.github.com>
+
+
 #include <print>
 #include <string_view>
 
@@ -16,24 +12,12 @@
 
 namespace {
 
-// Byte-exact copy of modules/module.json, NUL-terminated.
-// Quoted #embed follows the same relative-to-this-file search as #include.
 constexpr const char registry[] = {
 #embed "../modules/modules.json"
   ,
   0,
 };
 
-// The actual compile-time parse. Anything that violates simdjson's
-// compile-time rules (heterogeneous arrays, comments, top-level
-// primitives) fails HERE, at build time — not on a user's machine.
-//
-// simdjson synthesizes one aggregate per JSON object and one std::array
-// per JSON array, so every element of a given array must generate the
-// SAME type: identical keys in identical order, identical value types,
-// and no nested arrays (their length is part of the type). Hence the
-// FLAT registry: two homogeneous arrays only — "platforms" (families as
-// a comma-joined string) and "files" (every entry carrying its module).
 constexpr auto doc = simdjson::compile_time::parse_json<registry>();
 
 static_assert(doc.platforms.size() == 6, "six platforms expected");
